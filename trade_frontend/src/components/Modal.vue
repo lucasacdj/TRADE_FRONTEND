@@ -16,11 +16,8 @@
                 </tr>
               </thead>
               <tbody>
-                <tr
-                  v-for="time in listaDeTimes"
-                  :key="time.cd_time"
-                >
-                  <th scope="row">{{ time.cd_time }}</th>
+                <tr v-for="time in listaDeTimes" :key="time.id">
+                  <th scope="row">{{ time.id }}</th>
                   <td>{{ time.ds_time }}</td>
                 </tr>
               </tbody>
@@ -29,8 +26,10 @@
 
           <div class="modal-footer">
             <slot name="footer">
-              default footer
-              <button class="modal-default-button" @click="$emit('close')">
+              <button
+                class="modal-default-button btn btn-primary mt-3"
+                @click="$emit('close')"
+              >
                 OK
               </button>
             </slot>
@@ -42,46 +41,24 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   name: "ModalVue",
   data: () => ({
-    listaDeTimes: [
-      {
-        cd_time: 1,
-        ds_time: "Time 1",
-      },
-      {
-        cd_time: 2,
-        ds_time: "Time 2",
-      },
-      {
-        cd_time: 3,
-        ds_time: "Time 3",
-      },
-      {
-        cd_time: 4,
-        ds_time: "Time 4",
-      },
-      {
-        cd_time: 5,
-        ds_time: "Time 5",
-      },
-      {
-        cd_time: 6,
-        ds_time: "Time 6",
-      },
-      {
-        cd_time: 7,
-        ds_time: "Time 7",
-      },
-      {
-        cd_time: 8,
-        ds_time: "Time 8",
-      },
-    ],
+    listaDeTimes: [],
   }),
   props: {
     show: Boolean,
+  },
+  methods: {
+    async getTimes() {
+      const { data } = await axios.get("http://127.0.0.1:8000/api/times");
+      this.listaDeTimes = data;
+    },
+  },
+  mounted() {
+    this.getTimes();
   },
 };
 </script>

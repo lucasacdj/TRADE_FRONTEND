@@ -1,6 +1,6 @@
 <template>
   <Transition name="modal">
-    <div v-if="show" class="modal-mask">
+    <div v-if="showModal" class="modal-mask">
       <div class="modal-wrapper">
         <div class="modal-container">
           <div class="modal-header">
@@ -22,15 +22,38 @@
                 </tr>
               </tbody>
             </table>
+            <table class="table" v-if="campeoes.length">
+              <thead>
+                <tr>
+                  <th scope="col">Time</th>
+                  <th scope="col">Colocação</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="classificacao in campeoes" :key="classificacao.id">
+                  <th scope="row">{{ classificacao.id_time }}</th>
+                  <th scope="row">{{ classificacao.colocacao }}</th>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
           <div class="modal-footer">
             <slot name="footer">
               <button
-                class="modal-default-button btn btn-primary mt-3"
-                @click="$emit('close')"
+                class="modal-default-button btn btn-danger mt-3"
+                @click="
+                  $emit('close');
+                  limparCampeoes();
+                "
               >
-                OK
+                Fechar
+              </button>
+              <button
+                class="modal-default-button btn btn-primary mt-3"
+                @click="salvarChave()"
+              >
+                Salvar
               </button>
             </slot>
           </div>
@@ -47,14 +70,72 @@ export default {
   name: "ModalVue",
   data: () => ({
     listaDeTimes: [],
+    chave: [],
+    campeoes: [],
   }),
   props: {
-    show: Boolean,
+    showModal: Boolean,
+    idCampeonatoSelect: {},
   },
   methods: {
+    async verificarCampeoes() {
+      const objChave = { id_campeonato: this.idCampeonatoSelect };
+
+      const { data } = await axios.post(
+        "http://127.0.0.1:8000/api/chave/list/listarCampeoes",
+        objChave
+      );
+
+      data.forEach((item) => {
+        if (item.campeao) {
+          item.colocacao = "OURO";
+        } else if (item.vice) {
+          item.colocacao = "PRATA";
+        } else {
+          item.colocacao = "BRONZE";
+        }
+      });
+      this.campeoes = data;
+    },
     async getTimes() {
+      this.campeoes = [];
       const { data } = await axios.get("http://127.0.0.1:8000/api/times");
-      this.listaDeTimes = data;
+      if (Array.isArray(data)) {
+        this.listaDeTimes = data;
+        this.verificarCampeoes();
+      }
+    },
+    montarObjetoChave() {
+      this.listaDeTimes.forEach((time) => {
+        const objChave = {
+          id_campeonato: this.idCampeonatoSelect,
+          id_time: time.id,
+        };
+        this.chave.push(objChave);
+      });
+    },
+    async salvarChave() {
+      this.montarObjetoChave();
+      const recebeChave = this.chave;
+      const { data } = await axios.post(
+        "http://127.0.0.1:8000/api/chave/salvar",
+        recebeChave
+      );
+
+      data.forEach((item) => {
+        if (item.campeao) {
+          item.colocacao = "OURO";
+        } else if (item.vice) {
+          item.colocacao = "PRATA";
+        } else {
+          item.colocacao = "BRONZE";
+        }
+      });
+
+      this.campeoes = data;
+    },
+    limparCampeoes() {
+      this.campeoes = [];
     },
   },
   mounted() {

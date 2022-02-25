@@ -30,8 +30,8 @@
           <td>
             <button
               @click="
+                recuperaIdCampeonato(campeonato.id);
                 showModal = true;
-                adicionarTimes(campeonato.id);
               "
               type="button"
               class="btn btn-primary mt-3"
@@ -53,14 +53,17 @@
         </tr>
       </tbody>
     </table>
-    <div>
       <!-- use the modal component, pass in the prop -->
-      <modal :show="showModal" @close="showModal = false">
+      <Modal 
+        v-if="showModal" 
+        :idCampeonatoSelect="idCampeonatoSelect" 
+        @close="showModal = false"
+        :showModal="showModal"
+        >
         <template #header>
           <h3>Times</h3>
         </template>
-      </modal>
-    </div>
+      </Modal>
   </div>
 </template>
 
@@ -79,6 +82,7 @@ export default {
     },
     listaDeCampeonatos: [],
     showModal: false,
+    idCampeonatoSelect: '',
   }),
   props: {
     msg: String,
@@ -88,8 +92,8 @@ export default {
       const { data } = await axios.get("http://127.0.0.1:8000/api/campeonato");
       this.listaDeCampeonatos = data;
     },
-    adicionarTimes(idCampeonato) {
-      console.log(idCampeonato);
+    recuperaIdCampeonato(idCampeonato) {
+      this.idCampeonatoSelect = idCampeonato;
     },
     async salvarCampeonato() {
       const ds_campeonato = this.campeonato.nomeCampeonato;
@@ -100,7 +104,8 @@ export default {
       this.getCampeonatos();
     },
   },
-  mounted() {
+  created() {
+    console.log('aqui');
     this.getCampeonatos();
   },
 };
